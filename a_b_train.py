@@ -20,9 +20,9 @@ default_transform = transforms.Compose([
 ])
 
 # 载入数据集
-train_data = ABDataset("datasets\\apple_banana_datasets\\train", default_transform)
-val_data = ABDataset("datasets\\apple_banana_datasets\\val", default_transform)
-test_data = ABDataset("datasets\\apple_banana_datasets\\test", default_transform)
+train_data = ABDataset("data\\apple_banana_datasets\\train", default_transform)
+val_data = ABDataset("data\\apple_banana_datasets\\val", default_transform)
+test_data = ABDataset("data\\apple_banana_datasets\\test", default_transform)
 
 # 分类数量标签
 labels = ['apple', 'banana']
