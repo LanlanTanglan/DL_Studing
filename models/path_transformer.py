@@ -34,12 +34,10 @@ class DirectionEncode(nn.Module):
         # x1: B * len * 2
         # img: B * ch * w * h
         x = x.reshape(-1, x.size(1), d_model)
-        # img = img.reshape(-1, img.size(1), img_w * img_h)
-        # img = img.permute(0, 2, 3, 1)
         img = self.conv1(img)
         img = img.expand(3, -1, -1, -1, -1)
         img = img.permute(1, 2, 3, 4, 0)
-        img = img.reshape(-1, img.size(1), d_model)
+        img = img.reshape(-1, img.size(1), d_model)  # img : batch * len * 27
         x = img + x
         cls_token = nn.Parameter(torch.full((x.size(0), 1, d_model), 0.0)).cuda()
         x = torch.cat((x, cls_token), dim=1)
@@ -174,8 +172,7 @@ class PathTransformer(nn.Module):
     def forward(self, dec_inputs, x1, img):
         dec_outputs = self.dire_ecn(dec_inputs, x1, img)  # [batch_size, tgt_len, d_model]
         dec_outputs, dec_self_attns = self.decoder(dec_outputs)
-        dec_logits = self.dire_dec(dec_outputs)  # dec_logits: [batch_size, tgt_len, tgt_vocab_size]
-        # return dec_logits.view(-1, dec_logits.size(-1))
+        dec_logits = self.dire_dec(dec_outputs)  # dec_logits: [batch_size, tgt_len, 2]
         return dec_logits
 
 
