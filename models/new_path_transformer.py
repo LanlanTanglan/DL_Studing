@@ -5,6 +5,7 @@ import numpy as np
 from DL_Studing.datasets.new_path_dataset import PathDataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
+from torch.utils.tensorboard import SummaryWriter
 import torch.optim as optim
 
 # Transformer Parameters
@@ -245,8 +246,9 @@ if __name__ == '__main__':
     transform = transforms.Compose([transforms.ToTensor()])
     train_data = PathDataset("D:\\DeepLearning\\PersonalStudy\\DL_Studing\\data\\pixel_path\\train",
                              transform=transform)
+    tb_writer = SummaryWriter(log_dir="D:\\DeepLearning\\PersonalStudy\\DL_Studing\\runs\\path_transformer")
     train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
-    for epoch in range(10000):
+    for epoch in range(12000):
         train_loss = 0
         pt_model.train()
         for batch, (x, y_pos, img) in enumerate(train_dataloader):
@@ -266,8 +268,9 @@ if __name__ == '__main__':
             optimizer.step()
             train_loss += loss.item()
         print(f"epoch {epoch}, train loss: {train_loss / len(train_data)}")
-    # torch.save(pt_model.state_dict(),
-    #            'D:\\DeepLearning\\PersonalStudy\\DL_Studing\\weights\\path_transformer\\model4.pt')
+        tb_writer.add_scalar('train/Loss', train_loss / len(train_data), epoch)
+    torch.save(pt_model.state_dict(),
+               'D:\\DeepLearning\\PersonalStudy\\DL_Studing\\weights\\path_transformer\\path_transformer_model1.pt')
 
     test_data = PathDataset("D:\\DeepLearning\\PersonalStudy\\DL_Studing\\data\\pixel_path\\test",
                             transform=transform)
