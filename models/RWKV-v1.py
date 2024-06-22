@@ -19,6 +19,33 @@ batch_size = 4
 img_w, img_h = 32, 32
 
 
+def cut_patch(img, pos, patch_size=3):
+    patches = []
+    for coord in pos:
+        x, y = coord[0], coord[1]
+        # 计算图像块的位置
+        if x == -1e9 and y == -1e9:
+            patches.append(torch.full((3, patch_size, patch_size), -1e9))
+            continue
+        x_start = max(x - patch_size // 2, 0)
+        x_end = min(x + patch_size // 2 + 1, img.size(1))
+        y_start = max(y - patch_size // 2, 0)
+        y_end = min(y + patch_size // 2 + 1, img.size(2))
+
+        # 计算边界的补全量
+        left_pad = patch_size // 2 if y == 0 else 0
+        right_pad = patch_size // 2 if y == img.size(1) - 1 else 0
+        bottom_pad = patch_size // 2 if x == img.size(2) - 1 else 0
+        top_pad = patch_size // 2 if x == 0 else 0
+
+        # 使用pad函数进行补全
+        patch = F.pad(img[:, x_start:x_end, y_start:y_end], (left_pad, right_pad, top_pad, bottom_pad))
+
+        # 将提取的图像块添加到列表中
+        patches.append(patch)
+    return patches
+
+
 class InputEmbedding(nn.Module):
     def __init__(self):
         super(InputEmbedding, self).__init__()
@@ -199,11 +226,13 @@ class PathRwkv(nn.Module):
         self.blocks = [RwkvBlock(config, i) for i in range(config.layer)]
         self.path_encoder = PathRwkvEncode(config)
         self.path_decoder = PathRwkvDecode(config)
+        self.dropout = nn.Dropout(p=0.2)
 
     def forward(self, x, img):
         x = self.path_encoder(x, img)
         x = self.layerNorm(x)
         for block in self.blocks:
+            x = self.dropout(x)
             x = block(x)
         x = self.path_decoder(x)
         return x
